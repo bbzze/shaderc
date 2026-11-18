@@ -72,6 +72,14 @@ set(SHADERC_LIBS
 target_link_libraries(shaderc PRIVATE ${SHADERC_LIBS})
 target_link_libraries(shaderc_shared PRIVATE ${SHADERC_LIBS})
 
+# Apple's linker only copies the parts of a static library that something asks for.
+# LWJGL looks up every SPIRV-Tools function by name when the game runs, so the
+# linker cannot know they are needed. -force_load keeps all of libSPIRV-Tools.a.
+if(APPLE)
+  target_link_options(shaderc_shared PRIVATE
+    "LINKER:-force_load,$<TARGET_FILE:SPIRV-Tools>")
+endif()
+
 shaderc_add_tests(
   TEST_PREFIX shaderc
   LINK_LIBS shaderc
