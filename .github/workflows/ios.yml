@@ -44,6 +44,21 @@ jobs:
             -DSHADERC_SKIP_TESTS=ON
           cmake --build build --config RelWithDebInfo -- -j8
 
+      - name: Check that the needed functions are present
+        run: |
+          nm -gU build/libshaderc/libshaderc_shared.dylib > exports.txt
+          for f in spvSoftwareVersionString spvSoftwareVersionDetailsString \
+                   spvReducerOptionsCreate spvReducerOptionsSetStepLimit \
+                   spvFuzzerOptionsCreate spvFuzzerOptionsEnableAllPasses \
+                   spvContextCreate shaderc_compile_into_spv; do
+            if grep -q " _${f}\$" exports.txt; then
+              echo "OK: $f"
+            else
+              echo "MISSING: $f"
+              exit 1
+            fi
+          done
+
       - name: Upload libshaderc
         uses: actions/upload-artifact@v4
         with:
